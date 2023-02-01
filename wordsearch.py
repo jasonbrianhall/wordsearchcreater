@@ -62,7 +62,8 @@ def replace_dashes(grid):
     for row in grid:
         y=0
         for character in row:
-            grid[x][y]=random.choice(string.ascii_letters).lower()
+            if grid[x][y]=="-":
+                grid[x][y]=random.choice(string.ascii_letters).lower()
             y+=1
         x+=1
 
@@ -149,5 +150,6 @@ if __name__ == '__main__':
     print_grid(grid)
     print_words_table(words)
     selected_printer = select_printer()
+    original_words.sort()
     print_to_selected_printer(grid, title, original_words, selected_printer)
     print_to_selected_printer(original_grid, title, original_words, selected_printer)
