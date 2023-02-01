@@ -2,6 +2,7 @@ import random
 import string
 import cups
 import re
+import copy
 
 def create_word_search(words, size=30):
     """Creates a word search from a list of words and returns the grid as a list of lists."""
@@ -86,10 +87,33 @@ def select_printer():
     selected_printer = int(input("Select a printer by its number: "))
     return list(printers.keys())[selected_printer]
 
-def print_to_selected_printer(grid, printer_id):
+def print_to_selected_printer(grid, title, words, printer_id):
     """Prints the word search puzzle to the selected printer."""
     conn = cups.Connection()
     grid_string = '\n'.join([' '.join(row) for row in grid])
+    grid_string=title + "\n\n" + grid_string + "\n\n"
+
+    maxlen=0
+    counter=0
+    for x in words:
+        if len(words[counter])>maxlen:
+            maxlen=len(words[counter])
+        counter+=1
+    calclength=maxlen+5
+
+    counter=1
+    for x in words:
+        if not counter%3==0:
+            if counter<10:
+                grid_string=grid_string+" " + str(counter) + ") " + x + " "*(calclength-len(x))
+            else:
+                grid_string=grid_string+str(counter) + ") " + x + " "*(calclength-len(x))
+        else:
+            if counter<10:
+                grid_string=grid_string+" " + str(counter) + ") " + x+ "\n"
+            else:
+                grid_string=grid_string+str(counter) + ") " + x+ "\n"
+        counter+=1
     with open("/tmp/print.txt", "w") as f:
         f.write(grid_string)
     conn.printFile(printer_id, "/tmp/print.txt", "Print Job", {})
@@ -109,10 +133,21 @@ if __name__ == '__main__':
         else:
             words[counter] = re.sub(r'[^a-z]+', '', x, flags=re.IGNORECASE).lower()
         counter+=1
+    counter=0
+    for x in words:
+        words[counter] = re.sub(r'[^a-z]+', '', x, flags=re.IGNORECASE).lower()
+        counter+=1
+
     words.remove("")
     grid = create_word_search(words)
+    original_grid=[]
+    counter=0
+    for x in grid:
+        original_grid.append(grid[counter].copy())
+        counter+=1
     replace_dashes(grid)
     print_grid(grid)
     print_words_table(words)
     selected_printer = select_printer()
-    print_to_selected_printer(grid, selected_printer)
+    print_to_selected_printer(grid, title, original_words, selected_printer)
+    print_to_selected_printer(original_grid, title, original_words, selected_printer)
