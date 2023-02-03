@@ -170,8 +170,6 @@ def create_msword_file(grid, title, original_words, output_file):
 
 
 	document.save(output_file)
-	document.SaveAs(output_file + ".pdf", FileFormat=wdFormatPDF)
-
 
 def select_printer():
     """Lists available CUPS printers and allows the user to select one."""
