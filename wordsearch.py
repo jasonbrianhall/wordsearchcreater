@@ -307,6 +307,8 @@ if __name__ == '__main__':
 	# Add the output file argument
 	parser.add_argument('-o', '--output_file', type=str, help='MSWord Output File', required=True)
 
+	parser.add_argument('-s', '--size', type=int, help='Puzzle Size (defaults to 30); it also must be greater then zero and if it is too small of a value, it will create an infinite loop', required=False)
+
 	# Parse the command line arguments
 	args = parser.parse_args()
 
@@ -330,7 +332,10 @@ if __name__ == '__main__':
 		counter+=1
 
 	words.remove("")
-	grid = create_word_search(words)
+	if not args.size==None and args.size>0:
+		grid = create_word_search(words, args.size)
+	else:
+		grid = create_word_search(words)
 	original_grid=[]
 	counter=0
 	for x in grid:
