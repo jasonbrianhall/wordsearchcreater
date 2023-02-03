@@ -2,10 +2,11 @@
 
 import random
 import string
-import cups
+#import cups
 import re
 import copy
 import docx
+import argparse
 
 def create_word_search(words, size=30):
     """Creates a word search from a list of words and returns the grid as a list of lists."""
@@ -83,7 +84,6 @@ def print_words_table(words):
 
 def create_msword_file(grid, title, original_words, output_file):
 
-	print("Creating MS-Word File")
 	# Create a new Word document
 	document = docx.Document()
 
@@ -171,7 +171,7 @@ def create_msword_file(grid, title, original_words, output_file):
 
 	document.save(output_file)
 
-def select_printer():
+'''def select_printer():
     """Lists available CUPS printers and allows the user to select one."""
     conn = cups.Connection()
     printers = conn.getPrinters()
@@ -211,41 +211,58 @@ def print_to_selected_printer(grid, title, words, printer_id):
     with open("/tmp/print.txt", "w") as f:
         f.write(grid_string)
     conn.printFile(printer_id, "/tmp/print.txt", "Print Job", {})
-
+'''
 
 if __name__ == '__main__':
-    with open("words.txt", "r") as f:
-        words=f.read().split("\n")
-    original_words=words.copy()
-    original_words.remove(original_words[0])
-    original_words.remove("")
-    counter=0
-    for x in words:
-        if counter==0:
-            title=words[counter]
-            words.remove(words[0])
-        else:
-            words[counter] = re.sub(r'[^a-z]+', '', x, flags=re.IGNORECASE).lower()
-        counter+=1
-    counter=0
-    for x in words:
-        words[counter] = re.sub(r'[^a-z]+', '', x, flags=re.IGNORECASE).lower()
-        counter+=1
+	parser = argparse.ArgumentParser(description='Process some files.')
 
-    words.remove("")
-    grid = create_word_search(words)
-    original_grid=[]
-    counter=0
-    for x in grid:
-        original_grid.append(grid[counter].copy())
-        counter+=1
-    replace_dashes(grid)
-    print_grid(grid)
-    print_words_table(words)
-    #selected_printer = select_printer()
-    original_words.sort()
+	# Add the input file argument
+	parser.add_argument('-i', '--input_file', type=str, help='Dictionary File with the first line being the title', required=True)
 
-    create_msword_file(grid, title, original_words, "test.docx")
-    
-    #print_to_selected_printer(grid, title, original_words, selected_printer)
-    #print_to_selected_printer(original_grid, title, original_words, selected_printer)
+	# Add the output file argument
+	parser.add_argument('-o', '--output_file', type=str, help='MSWord Output File', required=True)
+
+	# Parse the command line arguments
+	args = parser.parse_args()
+
+	with open(args.input_file, "r") as f:
+		words=f.read().split("\n")
+	original_words=words.copy()
+	original_words.remove(original_words[0])
+	original_words.remove("")
+	counter=0
+	for x in words:
+		if counter==0:
+			title=words[counter]
+			words.remove(words[0])
+		else:
+			words[counter] = re.sub(r'[^a-z]+', '', x, flags=re.IGNORECASE).lower()
+		counter+=1
+
+	counter=0
+	for x in words:
+		words[counter] = re.sub(r'[^a-z]+', '', x, flags=re.IGNORECASE).lower()
+		counter+=1
+
+	words.remove("")
+	grid = create_word_search(words)
+	original_grid=[]
+	counter=0
+	for x in grid:
+		original_grid.append(grid[counter].copy())
+		counter+=1
+
+	replace_dashes(grid)
+
+	print_grid(grid)
+	print_words_table(words)
+
+	#selected_printer = select_printer()
+
+	original_words.sort()
+	print("\nCreating MS-Word File " + args.output_file + "\n")
+	create_msword_file(grid, title, original_words, args.output_file)
+	print("Done Creating MS-Word File")
+
+	#print_to_selected_printer(grid, title, original_words, selected_printer)
+	#print_to_selected_printer(original_grid, title, original_words, selected_printer)
