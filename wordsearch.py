@@ -125,18 +125,52 @@ def create_msword_file(grid, title, original_words, output_file):
 	puzzle_run.font.size = docx.shared.Pt(9)
 	puzzle_run.font.name = "Consolas"
 
-	words=""
-	document.add_paragraph("")
+	'''words=""
 	calclength=len(original_words)/3
 	print(calclength, original_words)
 	table = document.add_table(rows=int(len(original_words)/3+1), cols=3)
 	counter=0
 	for x in original_words:
 		table.cell(int(counter/3),counter%3).text = x
+		counter+=1'''
+	maxlen=0
+	counter=0
+	for x in original_words:
+		if len(original_words[counter])>maxlen:
+			maxlen=len(original_words[counter])
+		counter+=1
+	calclength=maxlen+5
+
+
+	grid_string=""
+	counter=1
+	for x in original_words:
+		if not counter%3==0:
+			if counter<10:
+				grid_string=grid_string+" " + str(counter) + ") " + x + " "*(calclength-len(x))
+			else:
+				grid_string=grid_string+str(counter) + ") " + x + " "*(calclength-len(x))
+		else:
+			if counter<10:
+				grid_string=grid_string+" " + str(counter) + ") " + x+ "\n"
+			else:
+				grid_string=grid_string+str(counter) + ") " + x+ "\n"
 		counter+=1
 
-	document.save(output_file)
+	# Create a new paragraph and set its text
+	puzzle = document.add_paragraph()
+	puzzle_run = puzzle.add_run(grid_string)
 
+	# Center the text, make it bold, set the font size to 12, and set the font to Consolas
+	#puzzle.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+	puzzle_run.bold = True
+	puzzle_run.font.size = docx.shared.Pt(9)
+	puzzle_run.font.name = "Consolas"
+
+
+
+	document.save(output_file)
+	document.SaveAs(output_file + ".pdf", FileFormat=wdFormatPDF)
 
 
 def select_printer():
