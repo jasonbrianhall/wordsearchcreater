@@ -7,6 +7,9 @@ import re
 import copy
 import docx
 import argparse
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+
 
 def create_word_search(words, size=30):
     """Creates a word search from a list of words and returns the grid as a list of lists."""
@@ -82,7 +85,7 @@ def print_words_table(words):
 	for i, word in enumerate(words):
 		print(f'{i+1}. {word}')
 
-def create_msword_file(grid, title, original_words, output_file):
+def create_msword_file(original_grid, grid, title, original_words, output_file):
 
 	# Create a new Word document
 	document = docx.Document()
@@ -112,6 +115,88 @@ def create_msword_file(grid, title, original_words, output_file):
 				paragraph=paragraph + grid[i][j]
 			else:
 				paragraph=paragraph + " " + grid[i][j]
+				
+		paragraph=paragraph+"\n"
+
+	# Create a new paragraph and set its text
+	puzzle = document.add_paragraph()
+	puzzle_run = puzzle.add_run(paragraph)
+
+	# Center the text, make it bold, set the font size to 12, and set the font to Consolas
+	puzzle.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+	#puzzle_run.bold = True
+	puzzle_run.font.size = docx.shared.Pt(9)
+	puzzle_run.font.name = "Consolas"
+
+	'''words=""
+	calclength=len(original_words)/3
+	print(calclength, original_words)
+	table = document.add_table(rows=int(len(original_words)/3+1), cols=3)
+	counter=0
+	for x in original_words:
+		table.cell(int(counter/3),counter%3).text = x
+		counter+=1'''
+	maxlen=0
+	counter=0
+	for x in original_words:
+		if len(original_words[counter])>maxlen:
+			maxlen=len(original_words[counter])
+		counter+=1
+	calclength=maxlen+5
+
+
+	grid_string=""
+	counter=1
+	for x in original_words:
+		if not counter%3==0:
+			if counter<10:
+				grid_string=grid_string+" " + str(counter) + ") " + x + " "*(calclength-len(x))
+			else:
+				grid_string=grid_string+str(counter) + ") " + x + " "*(calclength-len(x))
+		else:
+			if counter<10:
+				grid_string=grid_string+" " + str(counter) + ") " + x+ "\n"
+			else:
+				grid_string=grid_string+str(counter) + ") " + x+ "\n"
+		counter+=1
+
+	# Create a new paragraph and set its text
+	puzzle = document.add_paragraph()
+	puzzle_run = puzzle.add_run(grid_string)
+
+	# Center the text, make it bold, set the font size to 12, and set the font to Consolas
+	#puzzle.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+	puzzle_run.bold = True
+	puzzle_run.font.size = docx.shared.Pt(9)
+	puzzle_run.font.name = "Consolas"
+
+	document.add_page_break()
+
+	# Set the font to Lucida Console
+	style = document.styles['Normal']
+	font = style.font
+	#font.name = 'Consolas'
+
+	# Add the header line
+	# Create a new paragraph and set its text
+	header = document.add_paragraph()
+	header_run = header.add_run(title + " (Key)")
+
+	header.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+	header_run.bold = True
+	header_run.font.size = docx.shared.Pt(14)
+	header_run.font.name = "Arial"
+	
+	# Create the table
+	gridlength=len(original_grid)
+	
+	paragraph=""
+	for i in range(gridlength):
+		for j in range(len(original_grid[i])):
+			if j==0:
+				paragraph=paragraph + original_grid[i][j]
+			else:
+				paragraph=paragraph + " " + original_grid[i][j]
 				
 		paragraph=paragraph+"\n"
 
@@ -261,7 +346,7 @@ if __name__ == '__main__':
 
 	original_words.sort()
 	print("\nCreating MS-Word File " + args.output_file + "\n")
-	create_msword_file(grid, title, original_words, args.output_file)
+	create_msword_file(original_grid, grid, title, original_words, args.output_file)
 	print("Done Creating MS-Word File")
 
 	#print_to_selected_printer(grid, title, original_words, selected_printer)
