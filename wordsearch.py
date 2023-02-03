@@ -5,6 +5,7 @@ import string
 import cups
 import re
 import copy
+import docx
 
 def create_word_search(words, size=30):
     """Creates a word search from a list of words and returns the grid as a list of lists."""
@@ -70,15 +71,73 @@ def replace_dashes(grid):
         x+=1
 
 def print_grid(grid):
-    """Prints the grid as a string."""
-    for row in grid:
-        print(' '.join(row))
+	"""Prints the grid as a string."""
+	for row in grid:
+		print(' '.join(row))
 
 def print_words_table(words):
-    """Prints the words in a table format."""
-    print('\nWords:')
-    for i, word in enumerate(words):
-        print(f'{i+1}. {word}')
+	"""Prints the words in a table format."""
+	print('\nWords:')
+	for i, word in enumerate(words):
+		print(f'{i+1}. {word}')
+
+def create_msword_file(grid, title, original_words, output_file):
+
+	print("Creating MS-Word File")
+	# Create a new Word document
+	document = docx.Document()
+
+	# Set the font to Lucida Console
+	style = document.styles['Normal']
+	font = style.font
+	#font.name = 'Consolas'
+
+	# Add the header line
+	# Create a new paragraph and set its text
+	header = document.add_paragraph()
+	header_run = header.add_run(title)
+
+	header.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+	header_run.bold = True
+	header_run.font.size = docx.shared.Pt(14)
+	header_run.font.name = "Arial"
+	
+	# Create the table
+	gridlength=len(grid)
+	
+	paragraph=""
+	for i in range(gridlength):
+		for j in range(len(grid[i])):
+			if j==0:
+				paragraph=paragraph + grid[i][j]
+			else:
+				paragraph=paragraph + " " + grid[i][j]
+				
+		paragraph=paragraph+"\n"
+
+	# Create a new paragraph and set its text
+	puzzle = document.add_paragraph()
+	puzzle_run = puzzle.add_run(paragraph)
+
+	# Center the text, make it bold, set the font size to 12, and set the font to Consolas
+	puzzle.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+	#puzzle_run.bold = True
+	puzzle_run.font.size = docx.shared.Pt(9)
+	puzzle_run.font.name = "Consolas"
+
+	words=""
+	document.add_paragraph("")
+	calclength=len(original_words)/3
+	print(calclength, original_words)
+	table = document.add_table(rows=int(len(original_words)/3+1), cols=3)
+	counter=0
+	for x in original_words:
+		table.cell(int(counter/3),counter%3).text = x
+		counter+=1
+
+	document.save(output_file)
+
+
 
 def select_printer():
     """Lists available CUPS printers and allows the user to select one."""
@@ -151,7 +210,10 @@ if __name__ == '__main__':
     replace_dashes(grid)
     print_grid(grid)
     print_words_table(words)
-    selected_printer = select_printer()
+    #selected_printer = select_printer()
     original_words.sort()
-    print_to_selected_printer(grid, title, original_words, selected_printer)
-    print_to_selected_printer(original_grid, title, original_words, selected_printer)
+
+    create_msword_file(grid, title, original_words, "test.docx")
+    
+    #print_to_selected_printer(grid, title, original_words, selected_printer)
+    #print_to_selected_printer(original_grid, title, original_words, selected_printer)
